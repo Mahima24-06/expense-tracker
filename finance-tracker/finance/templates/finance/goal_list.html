@@ -1,0 +1,148 @@
+{% extends "finance/base.html" %}
+{% block title %}My Goals{% endblock title %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="container mx-auto px-4 max-w-6xl">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-800">My Goals</h1>
+        <p class="text-gray-500 mt-1">Track and manage your savings goals</p>
+      </div>
+      <a href="{% url 'goal_add' %}" 
+         class="mt-4 md:mt-0 inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition shadow-lg">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        Add New Goal
+      </a>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <p class="text-sm text-gray-500 font-medium">Active Goals</p>
+        <p class="text-3xl font-bold text-indigo-600 mt-1">{{ goals_count }}</p>
+      </div>
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <p class="text-sm text-gray-500 font-medium">Total Target</p>
+        <p class="text-3xl font-bold text-gray-800 mt-1">Rs.{{ total_target|floatformat:0 }}</p>
+      </div>
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <p class="text-sm text-gray-500 font-medium">Total Saved</p>
+        <p class="text-3xl font-bold text-green-600 mt-1">Rs.{{ total_saved|floatformat:0 }}</p>
+      </div>
+    </div>
+
+    <!-- Active Goals -->
+    <div class="mb-8">
+      <h2 class="text-xl font-bold text-gray-800 mb-4">Active Goals</h2>
+      {% if active_goals %}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for goal in active_goals %}
+        <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition">
+          <div class="p-6">
+            <div class="flex items-start justify-between mb-4">
+              <div>
+                <h3 class="font-bold text-lg text-gray-800">{{ goal.name }}</h3>
+                <p class="text-sm text-gray-500">Due: {{ goal.deadline|date:"M d, Y" }}</p>
+              </div>
+              <span class="px-3 py-1 text-xs font-medium rounded-full {% if goal.days_remaining <= 7 %}bg-red-100 text-red-600{% elif goal.days_remaining <= 30 %}bg-yellow-100 text-yellow-600{% else %}bg-green-100 text-green-600{% endif %}">
+                {{ goal.days_remaining }} days left
+              </span>
+            </div>
+            
+            <!-- Progress -->
+            <div class="mb-4">
+              <div class="flex justify-between text-sm mb-2">
+                <span class="text-gray-600">Rs.{{ goal.current_amount|floatformat:0 }} saved</span>
+                <span class="font-medium text-indigo-600">{{ goal.progress_percentage|floatformat:0 }}%</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-3">
+                <div class="h-3 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500"
+                     style="width: {{ goal.progress_percentage|floatformat:0 }}%"></div>
+              </div>
+              <p class="text-xs text-gray-500 mt-2">Target: Rs.{{ goal.target_amount|floatformat:0 }}</p>
+            </div>
+            
+            <!-- Actions -->
+            <div class="flex gap-2">
+              <a href="{% url 'goal_detail' goal.pk %}" 
+                 class="flex-1 text-center px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition">
+                View Details
+              </a>
+              <form action="{% url 'goal_complete' goal.pk %}" method="post" class="inline">
+                {% csrf_token %}
+                <button type="submit" 
+                        class="px-4 py-2 bg-green-100 text-green-600 text-sm rounded-lg hover:bg-green-200 transition"
+                        title="Mark as Complete">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="bg-white rounded-xl shadow-md p-12 text-center">
+        <div class="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-800 mb-2">No Active Goals</h3>
+        <p class="text-gray-500 mb-6">Start by creating your first savings goal!</p>
+        <a href="{% url 'goal_add' %}" 
+           class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
+          Create Your First Goal
+        </a>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Completed Goals -->
+    {% if completed_goals %}
+    <div>
+      <h2 class="text-xl font-bold text-gray-800 mb-4">Completed Goals</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for goal in completed_goals %}
+        <div class="bg-white rounded-xl shadow-md overflow-hidden opacity-75">
+          <div class="p-6">
+            <div class="flex items-start justify-between mb-4">
+              <div>
+                <h3 class="font-bold text-lg text-gray-800">{{ goal.name }}</h3>
+                <p class="text-sm text-green-600">Completed {{ goal.completed_at|date:"M d, Y" }}</p>
+              </div>
+              <span class="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-600">
+                Done!
+              </span>
+            </div>
+            
+            <div class="mb-4">
+              <div class="w-full bg-gray-200 rounded-full h-3">
+                <div class="h-3 rounded-full bg-green-500" style="width: 100%"></div>
+              </div>
+              <p class="text-sm text-gray-600 mt-2">Saved Rs.{{ goal.current_amount|floatformat:0 }} of Rs.{{ goal.target_amount|floatformat:0 }}</p>
+            </div>
+            
+            <form action="{% url 'goal_delete' goal.pk %}" method="post" onsubmit="return confirm('Delete this goal?');">
+              {% csrf_token %}
+              <button type="submit" class="text-red-500 text-sm hover:underline">Delete</button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock content %}
+

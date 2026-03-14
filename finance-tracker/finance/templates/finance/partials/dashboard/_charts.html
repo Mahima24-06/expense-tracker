@@ -1,0 +1,54 @@
+<!-- Charts Section -->
+<div class="lg:col-span-2 space-y-6">
+  <!-- Bar Chart: Transactions over Time -->
+  <div class="bg-white rounded-2xl shadow-lg p-6">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h2 class="text-lg font-bold text-gray-800">Income vs Expenses</h2>
+        <p class="text-sm text-gray-500">Last 30 days transaction trends</p>
+      </div>
+      <div class="flex items-center gap-4 text-sm">
+        <span class="flex items-center"
+          ><span class="w-3 h-3 bg-green-500 rounded-full mr-2"></span
+          >Income</span
+        >
+        <span class="flex items-center"
+          ><span class="w-3 h-3 bg-red-500 rounded-full mr-2"></span
+          >Expenses</span
+        >
+      </div>
+    </div>
+    <div class="h-72">
+      <canvas id="barChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Pie Chart: Category-wise Spending -->
+  <div class="bg-white rounded-2xl shadow-lg p-6">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h2 class="text-lg font-bold text-gray-800">Spending by Category</h2>
+        <p class="text-sm text-gray-500">Where your money goes</p>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+      <div class="h-64 relative">
+        <canvas id="pieChart"></canvas>
+        <!-- Center text for total spent -->
+        <div
+          class="absolute inset-0 flex items-center justify-center pointer-events-none"
+        >
+          <div class="text-center">
+            <p class="text-xs text-gray-500">Total Spent</p>
+            <p class="text-xl font-bold text-gray-800" id="pieChartCenter">
+              ₹0
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="space-y-2" id="categoryLegend">
+        <!-- Legend will be populated by JS -->
+      </div>
+    </div>
+  </div>
+</div>

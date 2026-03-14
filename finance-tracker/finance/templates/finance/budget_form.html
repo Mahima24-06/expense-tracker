@@ -1,0 +1,301 @@
+{% extends "finance/base.html" %}
+{% block title %}{% if editing %}Edit{% else %}Set{% endif %} Budget{% endblock title %}
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-2xl w-full space-y-6 bg-white p-8 rounded-xl shadow-lg">
+    <div class="text-center">
+      <h1 class="text-2xl font-bold text-gray-900">
+        {% if editing %}Edit Monthly Budget{% else %}Set Your Monthly Budget{% endif %}
+      </h1>
+      <p class="mt-2 text-sm text-gray-600">Define your spending limit to stay on track</p>
+    </div>
+
+    <!-- Current Financial Status -->
+    <div class="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-lg border border-purple-100">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+        <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        Your Financial Overview
+      </h2>
+      
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div class="bg-white p-4 rounded-lg shadow-sm">
+          <p class="text-xs text-gray-500 uppercase tracking-wide">Total Income</p>
+          <p class="text-xl font-bold text-green-600">₹{{ total_income|floatformat:2 }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow-sm">
+          <p class="text-xs text-gray-500 uppercase tracking-wide">Total Expenses</p>
+          <p class="text-xl font-bold text-red-500">₹{{ total_expense|floatformat:2 }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow-sm">
+          <p class="text-xs text-gray-500 uppercase tracking-wide">Net Savings</p>
+          <p class="text-xl font-bold {% if net_savings >= 0 %}text-indigo-600{% else %}text-red-600{% endif %}">
+            ₹{{ net_savings|floatformat:2 }}
+          </p>
+        </div>
+      </div>
+
+      {% if current_budget and not editing %}
+      <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <p class="text-sm text-yellow-800">
+          <strong>Note:</strong> You already have a budget of ₹{{ current_budget.amount|floatformat:2 }} set for this month. 
+          Creating a new one will update it.
+        </p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Form Errors -->
+    {% if form.non_field_errors %}
+      <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded">
+        {% for error in form.non_field_errors %}
+          <p class="text-sm text-red-700">{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" class="space-y-6" id="budget-form" novalidate>
+      {% csrf_token %}
+      <div class="space-y-5">
+        <!-- Budget Amount Field -->
+        <div>
+          <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">
+            Budget Amount <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">₹</span>
+            <input 
+              type="number" 
+              name="amount" 
+              id="amount" 
+              step="0.01" 
+              min="0.01"
+              max="9999999.99"
+              required 
+              value="{{ form.amount.value|default:'' }}"
+              class="appearance-none w-full pl-8 pr-4 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition"
+              placeholder="2000.00"
+            >
+          </div>
+          <p class="mt-1 text-xs text-gray-500">Set your maximum spending limit for the month</p>
+          {% if form.amount.errors %}
+            {% for error in form.amount.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+            {% endfor %}
+          {% endif %}
+          <p class="mt-1 text-sm text-red-600 hidden" id="amount-error"></p>
+        </div>
+
+        <!-- Period Field -->
+        <div>
+          <label for="period" class="block text-sm font-medium text-gray-700 mb-1">
+            Budget Period <span class="text-red-500">*</span>
+          </label>
+          <select 
+            name="period" 
+            id="period"
+            required
+            class="appearance-none w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition bg-white"
+          >
+            <option value="monthly" {% if form.period.value == 'monthly' %}selected{% endif %}>Monthly</option>
+            <option value="yearly" {% if form.period.value == 'yearly' %}selected{% endif %}>Yearly</option>
+          </select>
+          {% if form.period.errors %}
+            {% for error in form.period.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+            {% endfor %}
+          {% endif %}
+        </div>
+
+        <!-- Month and Year Fields -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="month" class="block text-sm font-medium text-gray-700 mb-1">
+              Month <span class="text-red-500">*</span>
+            </label>
+            <select 
+              name="month" 
+              id="month"
+              required
+              class="appearance-none w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition bg-white"
+            >
+              {% with months="January,February,March,April,May,June,July,August,September,October,November,December" %}
+                {% for month_name in months|make_list %}
+                  {% if forloop.counter <= 12 %}
+                  {% endif %}
+                {% endfor %}
+              {% endwith %}
+              <option value="1" {% if form.month.value|stringformat:"s" == "1" %}selected{% endif %}>January</option>
+              <option value="2" {% if form.month.value|stringformat:"s" == "2" %}selected{% endif %}>February</option>
+              <option value="3" {% if form.month.value|stringformat:"s" == "3" %}selected{% endif %}>March</option>
+              <option value="4" {% if form.month.value|stringformat:"s" == "4" %}selected{% endif %}>April</option>
+              <option value="5" {% if form.month.value|stringformat:"s" == "5" %}selected{% endif %}>May</option>
+              <option value="6" {% if form.month.value|stringformat:"s" == "6" %}selected{% endif %}>June</option>
+              <option value="7" {% if form.month.value|stringformat:"s" == "7" %}selected{% endif %}>July</option>
+              <option value="8" {% if form.month.value|stringformat:"s" == "8" %}selected{% endif %}>August</option>
+              <option value="9" {% if form.month.value|stringformat:"s" == "9" %}selected{% endif %}>September</option>
+              <option value="10" {% if form.month.value|stringformat:"s" == "10" %}selected{% endif %}>October</option>
+              <option value="11" {% if form.month.value|stringformat:"s" == "11" %}selected{% endif %}>November</option>
+              <option value="12" {% if form.month.value|stringformat:"s" == "12" %}selected{% endif %}>December</option>
+            </select>
+            {% if form.month.errors %}
+              {% for error in form.month.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+              {% endfor %}
+            {% endif %}
+          </div>
+
+          <div>
+            <label for="year" class="block text-sm font-medium text-gray-700 mb-1">
+              Year <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="number" 
+              name="year" 
+              id="year" 
+              min="2000"
+              max="2100"
+              required 
+              value="{{ form.year.value|default:'' }}"
+              class="appearance-none w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition"
+              placeholder="2024"
+            >
+            {% if form.year.errors %}
+              {% for error in form.year.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+              {% endfor %}
+            {% endif %}
+            <p class="mt-1 text-sm text-red-600 hidden" id="year-error"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tips Section -->
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <h3 class="text-sm font-semibold text-blue-800 mb-2">💡 Budget Tips</h3>
+        <ul class="text-xs text-blue-700 space-y-1">
+          <li>• A common rule is the 50/30/20 budget: 50% needs, 30% wants, 20% savings</li>
+          <li>• Track your spending regularly to stay within budget</li>
+          <li>• Adjust your budget as your income or expenses change</li>
+        </ul>
+      </div>
+
+      <!-- Submit Button -->
+      <div>
+        <button 
+          type="submit" 
+          id="submit-btn"
+          class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150 ease-in-out"
+        >
+          {% if editing %}Update Budget{% else %}Set Budget{% endif %}
+        </button>
+      </div>
+    </form>
+
+    <!-- Cancel Link -->
+    <div class="text-center">
+      <a href="{% url 'dashboard' %}" class="text-sm text-indigo-600 hover:text-indigo-500 transition duration-150 ease-in-out">
+        Back to Dashboard
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('budget-form');
+  const amountInput = document.getElementById('amount');
+  const yearInput = document.getElementById('year');
+  
+  const amountError = document.getElementById('amount-error');
+  const yearError = document.getElementById('year-error');
+  
+  // Set default year to current year if empty
+  if (!yearInput.value) {
+    yearInput.value = new Date().getFullYear();
+  }
+  
+  // Set default month to current month
+  const monthSelect = document.getElementById('month');
+  if (!monthSelect.value || monthSelect.value === '') {
+    monthSelect.value = new Date().getMonth() + 1;
+  }
+  
+  function validateAmount() {
+    const value = parseFloat(amountInput.value);
+    
+    if (!amountInput.value) {
+      showError(amountInput, amountError, 'Budget amount is required.');
+      return false;
+    }
+    if (isNaN(value) || value <= 0) {
+      showError(amountInput, amountError, 'Amount must be greater than zero.');
+      return false;
+    }
+    if (value > 9999999.99) {
+      showError(amountInput, amountError, 'Amount cannot exceed ₹9,999,999.99.');
+      return false;
+    }
+    
+    clearError(amountInput, amountError);
+    return true;
+  }
+  
+  function validateYear() {
+    const value = parseInt(yearInput.value);
+    
+    if (!yearInput.value) {
+      showError(yearInput, yearError, 'Year is required.');
+      return false;
+    }
+    if (isNaN(value) || value < 2000 || value > 2100) {
+      showError(yearInput, yearError, 'Year must be between 2000 and 2100.');
+      return false;
+    }
+    
+    clearError(yearInput, yearError);
+    return true;
+  }
+  
+  function showError(input, errorEl, message) {
+    input.classList.add('border-red-500');
+    input.classList.remove('border-gray-300');
+    errorEl.textContent = message;
+    errorEl.classList.remove('hidden');
+  }
+  
+  function clearError(input, errorEl) {
+    input.classList.remove('border-red-500');
+    input.classList.add('border-gray-300');
+    errorEl.classList.add('hidden');
+  }
+  
+  // Real-time validation
+  amountInput.addEventListener('blur', validateAmount);
+  amountInput.addEventListener('input', function() {
+    if (!amountError.classList.contains('hidden')) validateAmount();
+  });
+  
+  yearInput.addEventListener('blur', validateYear);
+  yearInput.addEventListener('input', function() {
+    if (!yearError.classList.contains('hidden')) validateYear();
+  });
+  
+  // Form submission validation
+  form.addEventListener('submit', function(e) {
+    const isAmountValid = validateAmount();
+    const isYearValid = validateYear();
+    
+    if (!isAmountValid || !isYearValid) {
+      e.preventDefault();
+      const firstError = form.querySelector('.border-red-500');
+      if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        firstError.focus();
+      }
+    }
+  });
+});
+</script>
+{% endblock content %}

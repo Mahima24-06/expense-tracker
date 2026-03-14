@@ -1,0 +1,96 @@
+﻿{% extends "finance/base.html" %}
+{% block title %}Create New Goal{% endblock title %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="container mx-auto px-4 max-w-xl">
+    <!-- Back Button -->
+    <a href="{% url 'goal_list' %}" class="inline-flex items-center text-indigo-600 hover:text-indigo-800 mb-6">
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      Back to Goals
+    </a>
+
+    <!-- Form Card -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+      <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-6 text-white">
+        <h1 class="text-2xl font-bold">Create New Goal</h1>
+        <p class="text-indigo-100 mt-1">Set a savings target and track your progress</p>
+      </div>
+      
+      <form method="post" class="p-8 space-y-6">
+        {% csrf_token %}
+        
+        <!-- Display form errors -->
+        {% if form.non_field_errors %}
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+          {% for error in form.non_field_errors %}
+          <p class="text-red-600 text-sm">{{ error }}</p>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Goal Name -->
+        <div>
+          <label for="id_name" class="block text-sm font-medium text-gray-700 mb-2">
+            Goal Name <span class="text-red-500">*</span>
+          </label>
+          {{ form.name }}
+          {% if form.name.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-500">Give your goal a meaningful name</p>
+        </div>
+
+        <!-- Target Amount -->
+        <div>
+          <label for="id_target_amount" class="block text-sm font-medium text-gray-700 mb-2">
+            Target Amount <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">Rs.</span>
+            <input type="number" name="target_amount" id="id_target_amount" step="0.01" min="0.01"
+                   value="{{ form.target_amount.value|default:'' }}"
+                   class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                   placeholder="10000.00" required>
+          </div>
+          {% if form.target_amount.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.target_amount.errors.0 }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-500">How much do you want to save?</p>
+        </div>
+
+        <!-- Deadline -->
+        <div>
+          <label for="id_deadline" class="block text-sm font-medium text-gray-700 mb-2">
+            Target Date <span class="text-red-500">*</span>
+          </label>
+          {{ form.deadline }}
+          {% if form.deadline.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.deadline.errors.0 }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-500">When do you want to achieve this goal?</p>
+        </div>
+
+        <!-- Tips -->
+        <div class="bg-indigo-50 rounded-lg p-4">
+          <h4 class="font-medium text-indigo-800 mb-2">Tips for setting goals</h4>
+          <ul class="text-sm text-indigo-700 space-y-1">
+            <li>• Start with achievable targets</li>
+            <li>• Break large goals into smaller milestones</li>
+            <li>• Set realistic deadlines</li>
+            <li>• Contribute regularly to stay on track</li>
+          </ul>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" 
+                class="w-full py-4 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition shadow-lg">
+          Create Goal
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,44 @@
+<!-- Goals Progress -->
+<div class="bg-white rounded-2xl shadow-lg p-6">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="text-lg font-bold text-gray-800">Your Goals</h3>
+    <a href="{% url 'goal_list' %}" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">View All</a>
+  </div>
+  {% if goal_progress %}
+  <div class="space-y-4">
+    {% for item in goal_progress %}
+    <a href="{% url 'goal_detail' item.goal.pk %}" class="block p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
+      <div class="flex justify-between items-start mb-2">
+        <div>
+          <p class="font-medium text-gray-800 text-sm">{{ item.goal.name }}</p>
+          <p class="text-xs text-gray-500">Rs.{{ item.goal.current_amount|floatformat:0 }} / Rs.{{ item.goal.target_amount|floatformat:0 }}</p>
+        </div>
+        <span class="text-sm font-bold {% if item.goal.progress_percentage >= 100 %}text-green-500{% elif item.goal.progress_percentage >= 50 %}text-indigo-500{% else %}text-orange-500{% endif %}">
+          {{ item.goal.progress_percentage|floatformat:0 }}%
+        </span>
+      </div>
+      <div class="w-full bg-gray-200 rounded-full h-2">
+        <div class="h-2 rounded-full transition-all {% if item.goal.progress_percentage >= 100 %}bg-green-500{% elif item.goal.progress_percentage >= 50 %}bg-indigo-500{% else %}bg-orange-500{% endif %}"
+             style="width: {{ item.goal.progress_percentage|floatformat:0 }}%"></div>
+      </div>
+      {% if item.goal.status == 'completed' %}
+      <p class="text-xs text-green-600 mt-1">✓ Goal achieved!</p>
+      {% else %}
+      <p class="text-xs text-gray-500 mt-1">{{ item.goal.days_remaining }} days left</p>
+      {% endif %}
+    </a>
+    {% endfor %}
+  </div>
+  <a href="{% url 'goal_add' %}" class="mt-4 block text-center text-sm text-indigo-600 hover:text-indigo-800 font-medium">+ Add New Goal</a>
+  {% else %}
+  <div class="text-center py-6">
+    <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+      <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+      </svg>
+    </div>
+    <p class="text-sm text-gray-500">No goals yet</p>
+    <a href="{% url 'goal_list' %}" class="text-indigo-600 text-sm hover:underline">Create your first goal</a>
+  </div>
+  {% endif %}
+</div>

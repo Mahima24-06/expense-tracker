@@ -1,0 +1,93 @@
+<!-- Recent Transactions -->
+<div class="bg-white rounded-2xl shadow-lg p-6">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="text-lg font-bold text-gray-800">Recent Transactions</h3>
+    <a
+      href="{% url 'transaction_list' %}"
+      class="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+      >View All</a
+    >
+  </div>
+  {% if recent_transactions %}
+  <div class="space-y-3">
+    {% for txn in recent_transactions %}
+    <div
+      class="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition"
+    >
+      <div class="flex items-center">
+        <div
+          class="w-10 h-10 rounded-full flex items-center justify-center {% if txn.transaction_type == 'Income' %}bg-green-100{% else %}bg-red-100{% endif %}"
+        >
+          {% if txn.transaction_type == 'Income' %}
+          <svg
+            class="w-5 h-5 text-green-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M7 11l5-5m0 0l5 5m-5-5v12"
+            ></path>
+          </svg>
+          {% else %}
+          <svg
+            class="w-5 h-5 text-red-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17 13l-5 5m0 0l-5-5m5 5V6"
+            ></path>
+          </svg>
+          {% endif %}
+        </div>
+        <div class="ml-3">
+          <p class="font-medium text-gray-800 text-sm">
+            {{ txn.title|truncatechars:20 }}
+          </p>
+          <p class="text-xs text-gray-500">
+            {{ txn.category }} - {{ txn.date|date:"M d" }}
+          </p>
+        </div>
+      </div>
+      <span
+        class="font-bold text-sm {% if txn.transaction_type == 'Income' %}text-green-600{% else %}text-red-600{% endif %}"
+        >{% if txn.transaction_type == 'Income' %}+{% else %}-{% endif %}Rs.{{ txn.amount|floatformat:0 }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-6">
+    <div
+      class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3"
+    >
+      <svg
+        class="w-6 h-6 text-gray-400"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+        ></path>
+      </svg>
+    </div>
+    <p class="text-sm text-gray-500">No transactions yet</p>
+    <a
+      href="{% url 'transaction_add' %}"
+      class="text-indigo-600 text-sm hover:underline"
+      >Add your first transaction</a
+    >
+  </div>
+  {% endif %}
+</div>

@@ -1,0 +1,42 @@
+﻿{% extends "finance/base.html" %}
+
+{% block title %}Dashboard{% endblock title %}
+
+{% block content %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<div class="min-h-screen bg-gray-50">
+  <!-- Header Section -->
+  {% include "finance/partials/dashboard/_header.html" %}
+
+  <div class="container mx-auto px-6 -mt-6">
+    <!-- Summary Cards -->
+    {% include "finance/partials/dashboard/_summary_cards.html" %}
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <!-- Charts Section - Takes 2 columns -->
+      {% include "finance/partials/dashboard/_charts.html" %}
+
+      <!-- Right Sidebar -->
+      <div class="space-y-6">
+        <!-- Budget Progress Card -->
+        {% include "finance/partials/dashboard/_budget_card.html" %}
+
+        <!-- Goals Progress -->
+        {% include "finance/partials/dashboard/_goals.html" %}
+
+        <!-- Recent Transactions -->
+        {% include "finance/partials/dashboard/_recent_transactions.html" %}
+      </div>
+    </div>
+
+    <!-- Quick Stats Footer -->
+    {% include "finance/partials/dashboard/_quick_stats.html" %}
+  </div>
+</div>
+
+<!-- Chart.js Scripts -->
+{% include "finance/partials/dashboard/_chart_scripts.html" %}
+{% endblock content %}
